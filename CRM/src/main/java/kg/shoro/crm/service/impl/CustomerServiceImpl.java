@@ -28,10 +28,10 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     public Customer createCustomer(CreateCustomerRequest request) {
-        return Customer.builder()
+        return customerRepository.save(Customer.builder()
                 .name(request.name())
                 .debt(request.debt())
-                .build();
+                .build());
     }
 
     public Customer updateCustomer(Long id, UpdateCustomerRequest request) {

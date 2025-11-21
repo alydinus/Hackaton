@@ -1,10 +1,10 @@
 package kg.shoro.crm.controller;
 
 import jakarta.validation.Valid;
-import kg.spring.shared.dto.request.CreateProductRequest;
-import kg.spring.shared.dto.request.UpdateProductRequest;
 import kg.shoro.crm.mapper.ProductMapper;
 import kg.shoro.crm.service.ProductService;
+import kg.spring.shared.dto.request.CreateProductRequest;
+import kg.spring.shared.dto.request.UpdateProductRequest;
 import kg.spring.shared.dto.response.ProductResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

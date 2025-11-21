@@ -1,6 +1,5 @@
 package kg.shoro.crm.repository;
 
-import kg.shoro.crm.model.OrderProduct;
 import kg.shoro.crm.model.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -10,7 +9,6 @@ import java.util.List;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
-    @Query("SELECT op FROM OrderProduct op WHERE op.id IN :longs")
-    List<OrderProduct> findAllByIdIn(List<Long> longs);
-
+    @Query("SELECT p FROM Product p WHERE p.id IN :longs")
+    List<Product> findAllByIdIn(List<Long> longs);
 }

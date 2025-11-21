@@ -1,12 +1,11 @@
 package kg.shoro.crm.service.impl;
 
-import kg.spring.shared.dto.request.CreateProductRequest;
-import kg.spring.shared.dto.request.UpdateProductRequest;
 import kg.shoro.crm.exception.ProductNotFoundException;
-import kg.shoro.crm.model.OrderProduct;
 import kg.shoro.crm.model.Product;
 import kg.shoro.crm.repository.ProductRepository;
 import kg.shoro.crm.service.ProductService;
+import kg.spring.shared.dto.request.CreateProductRequest;
+import kg.spring.shared.dto.request.UpdateProductRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -29,12 +28,12 @@ public class ProductServiceImpl implements ProductService {
     }
 
     public Product createProduct(CreateProductRequest request) {
-        return Product.builder()
+        return productRepository.save(Product.builder()
                 .name(request.name())
                 .description(request.description())
                 .price(request.price())
                 .quantity(request.quantity())
-                .build();
+                .build());
     }
 
     public Product updateProduct(Long id, UpdateProductRequest request) {
@@ -55,7 +54,7 @@ public class ProductServiceImpl implements ProductService {
         productRepository.delete(product);
     }
 
-    public List<OrderProduct> getProductsByIds(List<Long> longs) {
+    public List<Product> getAllProductsByIds(List<Long> longs) {
         return productRepository.findAllByIdIn(longs);
     }
 }

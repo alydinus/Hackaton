@@ -13,9 +13,13 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     restart: always
+
   rabbitmq:
     image: rabbitmq:3.10.7-management
     ports:
-      - 15672:15672
+      - "15672:15672"
+      - "5672:5672"
+    restart: always
+
 volumes:
   pgdata:
