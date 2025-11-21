@@ -7,11 +7,8 @@ import java.util.List;
 
 @Builder
 public record SessionResponse (
-    Long sessionId,
-    String externalOrderId,
-    BigDecimal totalAmount,
-    String status,
-    Instant createdAt,
-    List<PartDto> parts
-    )
+        Long id,
+        String paymentLink,
+        String qrUrl
+)
 {}
