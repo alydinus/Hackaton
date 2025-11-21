@@ -1,8 +1,8 @@
 package kg.shoro.crm.controller;
 
 import jakarta.validation.Valid;
-import kg.shoro.crm.dto.request.CreateOrderRequest;
-import kg.shoro.crm.dto.request.UpdateOrderRequest;
+import kg.spring.shared.dto.request.CreateOrderRequest;
+import kg.spring.shared.dto.request.UpdateOrderRequest;
 import kg.shoro.crm.mapper.OrderMapper;
 import kg.shoro.crm.service.OrderService;
 import kg.spring.shared.dto.response.OrderResponse;

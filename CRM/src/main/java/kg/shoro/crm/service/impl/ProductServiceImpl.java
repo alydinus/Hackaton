@@ -1,7 +1,7 @@
 package kg.shoro.crm.service.impl;
 
-import kg.shoro.crm.dto.request.CreateProductRequest;
-import kg.shoro.crm.dto.request.UpdateProductRequest;
+import kg.spring.shared.dto.request.CreateProductRequest;
+import kg.spring.shared.dto.request.UpdateProductRequest;
 import kg.shoro.crm.exception.ProductNotFoundException;
 import kg.shoro.crm.model.OrderProduct;
 import kg.shoro.crm.model.Product;
@@ -11,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor

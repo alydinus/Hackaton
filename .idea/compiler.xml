@@ -31,6 +31,7 @@
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="CRM" target="21" />
+      <module name="PaymentService" target="21" />
       <module name="SplitUpService" target="21" />
     </bytecodeTargetLevel>
   </component>
@@ -38,6 +39,7 @@
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="CRM" options="-parameters" />
       <module name="Crm" options="-parameters" />
+      <module name="PaymentService" options="-parameters" />
       <module name="SplitUpService" options="-parameters" />
       <module name="shared" options="" />
     </option>

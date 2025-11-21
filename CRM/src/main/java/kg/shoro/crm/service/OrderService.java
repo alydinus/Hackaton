@@ -1,7 +1,7 @@
 package kg.shoro.crm.service;
 
-import kg.shoro.crm.dto.request.CreateOrderRequest;
-import kg.shoro.crm.dto.request.UpdateOrderRequest;
+import kg.spring.shared.dto.request.CreateOrderRequest;
+import kg.spring.shared.dto.request.UpdateOrderRequest;
 import kg.shoro.crm.model.Order;
 
 import java.util.List;
