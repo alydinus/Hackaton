@@ -1,7 +1,7 @@
 package kg.shoro.crm.service;
 
-import kg.shoro.crm.dto.request.CreateProductRequest;
-import kg.shoro.crm.dto.request.UpdateProductRequest;
+import kg.spring.shared.dto.request.CreateProductRequest;
+import kg.spring.shared.dto.request.UpdateProductRequest;
 import kg.shoro.crm.model.OrderProduct;
 import kg.shoro.crm.model.Product;
 

@@ -1,8 +1,8 @@
-package kg.shoro.crm.dto.request;
+package kg.spring.shared.dto.request;
 
 import java.util.List;
 
-public record UpdateOrderRequest(
+public record CreateOrderRequest(
         Long customerId,
         List<Long> productIds
 ) {

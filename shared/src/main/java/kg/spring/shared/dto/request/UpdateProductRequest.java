@@ -1,4 +1,4 @@
-package kg.shoro.crm.dto.request;
+package kg.spring.shared.dto.request;
 
 public record UpdateProductRequest(
         String name,
