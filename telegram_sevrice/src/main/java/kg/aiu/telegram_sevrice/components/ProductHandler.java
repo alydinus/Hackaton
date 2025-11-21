@@ -1,6 +1,8 @@
 package kg.aiu.telegram_sevrice.components;
 
 import kg.aiu.telegram_sevrice.service.OrderServiceClient;
+import kg.aiu.telegram_sevrice.service.ProductServiceClient;
+import kg.spring.shared.dto.request.CreateProductRequest;
 import kg.spring.shared.dto.response.ProductResponse;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -8,15 +10,18 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Component
 public class ProductHandler {
 
-    private final OrderServiceClient telService;
+    private final OrderServiceClient orderServiceClient;
+    private final ProductServiceClient productServiceClient;
     private final TelegramBot bot;
 
-    public ProductHandler(OrderServiceClient telService, TelegramBot bot) {
-        this.telService = telService;
+    public ProductHandler(OrderServiceClient orderServiceClient, ProductServiceClient productServiceClient, TelegramBot bot) {
+        this.orderServiceClient = orderServiceClient;
+        this.productServiceClient = productServiceClient;
         this.bot = bot;
     }
 
@@ -47,7 +52,7 @@ public class ProductHandler {
 
     public void showProductResponsesList(Long chatId, int page) {
         try {
-            List<ProductResponse> products = telService.getAllProductResponses();
+            List<ProductResponse> products = productServiceClient.getAllProductResponses();
 
             if (products.isEmpty()) {
                 bot.sendTextMessage(chatId, "📭 Товары не найдены");
@@ -65,7 +70,7 @@ public class ProductHandler {
                 ProductResponse product = products.get(i);
                 message.append(String.format(
                         "🆔 *ID:* %d\n📝 *Название:* %s\n💵 *Цена:* %s ₽\n📦 *Остаток:* %d шт.\n\n",
-                        product.getId(), product.getName(), product.getPrice(), product.getStockQuantity()
+                        product.id(), product.name(), product.price(), product.quantity()
                 ));
             }
 
@@ -79,7 +84,7 @@ public class ProductHandler {
 
     public void showProductResponseDetails(Long chatId, Long productId) {
         try {
-            ProductResponse product = telService.getProductResponseById(productId);
+            ProductResponse product = productServiceClient.getProductResponseById(productId);
 
             String message = String.format(
                     "📄 *Детали товара:*\n\n" +
@@ -87,16 +92,15 @@ public class ProductHandler {
                             "📝 *Название:* %s\n" +
                             "📋 *Описание:* %s\n" +
                             "💵 *Цена:* %s ₽\n" +
-                            "📦 *Остаток:* %d шт.\n" +
-                            "📁 *Категория:* %s\n" +
-                            "⏰ *Создан:* %s",
-                    product.getId(),
-                    product.getName(),
-                    product.getDescription() != null ? product.getDescription() : "Нет описания",
-                    product.getPrice(),
-                    product.getStockQuantity(),
-                    product.getCategory() != null ? product.getCategory() : "Не указана",
-                    product.getCreatedAt().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"))
+                            "📦 *Количество:* %d шт.\n" +
+//                            "📁 *Категория:* %s\n" +
+                    product.id(),
+                    product.name(),
+                    product.description() != null ? product.description() : "Нет описания",
+                    product.price(),
+                    product.quantity()
+//                    product.getCategory() != null ? product.getCategory() : "Не указана",
+//                    null != null ? product.getCategory() : "Не указана"
             );
 
             InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup();
@@ -147,10 +151,10 @@ public class ProductHandler {
 
             case AWAITING_PRODUCT_PRICE:
                 try {
-                    BigDecimal price = new BigDecimal(text);
+                    Double price = Double.valueOf(text);
                     context.put("price", price);
                     session.setState(TelSessionModel.BotState.AWAITING_PRODUCT_STOCK);
-                    bot.sendTextMessage(chatId, "📦 Введите количество на складе:");
+                    bot.sendTextMessage(chatId, "📦 Введите количество:");
                 } catch (NumberFormatException e) {
                     bot.sendTextMessage(chatId, "❌ Неверный формат цены. Введите число:");
                 }
@@ -165,16 +169,16 @@ public class ProductHandler {
                     InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup();
                     List<List<InlineKeyboardButton>> rows = new ArrayList<>();
 
-                    String[] categories = {"Электроника", "Одежда", "Книги", "Продукты", "Другое"};
-                    for (String category : categories) {
-                        List<InlineKeyboardButton> row = new ArrayList<>();
-                        row.add(createButton(category, "product_category_" + category));
-                        rows.add(row);
-                    }
+//                    String[] categories = {"Электроника", "Одежда", "Книги", "Продукты", "Другое"};
+//                    for (String category : categories) {
+//                        List<InlineKeyboardButton> row = new ArrayList<>();
+//                        row.add(createButton(category, "product_category_" + category));
+//                        rows.add(row);
+//                    }
 
                     keyboard.setKeyboard(rows);
 
-                    bot.sendMessageWithKeyboard(chatId, "📁 Выберите или введите категорию:", keyboard);
+//                    bot.sendMessageWithKeyboard(chatId, "📁 Выберите или введите категорию:", keyboard);
 
                 } catch (NumberFormatException e) {
                     bot.sendTextMessage(chatId, "❌ Неверный формат количества. Введите число:");
@@ -192,15 +196,16 @@ public class ProductHandler {
         try {
             Map<String, Object> context = session.getContext();
 
-            ProductResponse product = new ProductResponse();
-            product.setName((String) context.get("name"));
-            product.setDescription((String) context.get("description"));
-            product.setPrice((BigDecimal) context.get("price"));
-            product.setStockQuantity((Integer) context.get("stock"));
-            product.setCategory((String) context.get("category"));
-            product.setCreatedAt(java.time.LocalDateTime.now());
+            CreateProductRequest product = new CreateProductRequest(
 
-            ProductResponse createdProductResponse = telService.createProductResponse(product);
+            (String) context.get("name"),
+            (String) context.get("description"),
+            Double.valueOf((String)context.get("price")),
+            Integer.valueOf((String)context.get("stock"))
+//            product.setCategory((String) context.get("category"));
+            );
+
+            ProductResponse createdProductResponse = productServiceClient.createProduct(product);
 
             String message = String.format(
                     "✅ *Товар успешно создан!*\n\n" +
@@ -208,9 +213,10 @@ public class ProductHandler {
                             "📝 Название: %s\n" +
                             "💵 Цена: %s ₽\n" +
                             "📦 Остаток: %d шт.\n" +
-                            "📁 Категория: %s",
-                    createdProductResponse.getId(), createdProductResponse.getName(), createdProductResponse.getPrice(),
-                    createdProductResponse.getStockQuantity(), createdProductResponse.getCategory()
+//                            "📁 Категория: %s",
+                    createdProductResponse.id(), createdProductResponse.name(), createdProductResponse.price(),
+                    createdProductResponse.quantity()
+//                    , createdProductResponse.getCategory()
             );
 
             bot.sendTextMessage(chatId, message);
@@ -223,14 +229,13 @@ public class ProductHandler {
         }
     }
 
-    public void startProductResponseEditing(Long chatId, Long productId) {
-        // Реализация редактирования товара
+    public void startProductEditing(Long chatId, Long productId) {
         bot.sendTextMessage(chatId, "✏️ Редактирование товара ID: " + productId + "\n\nЭта функция в разработке...");
     }
 
-    public void deleteProductResponse(Long chatId, Long productId) {
+    public void deleteProduct(Long chatId, Long productId) {
         try {
-            telService.deleteProductResponse(productId);
+            productServiceClient.deleteProduct(productId);
             bot.sendTextMessage(chatId, "✅ Товар успешно удален");
         } catch (Exception e) {
             bot.sendTextMessage(chatId, "❌ Ошибка при удалении товара: " + e.getMessage());
@@ -238,28 +243,28 @@ public class ProductHandler {
     }
 
     public void searchProductResponses(Long chatId, String query) {
-        try {
-            List<ProductResponse> products = telService.searchProductResponses(query);
-
-            if (products.isEmpty()) {
-                bot.sendTextMessage(chatId, "🔍 Товары по запросу '" + query + "' не найдены");
-                return;
-            }
-
-            StringBuilder message = new StringBuilder("🔍 *Результаты поиска:* '" + query + "'\n\n");
-
-            for (ProductResponse product : products) {
-                message.append(String.format(
-                        "🆔 *ID:* %d\n📝 *Название:* %s\n💵 *Цена:* %s ₽\n📦 *Остаток:* %d шт.\n\n",
-                        product.getId(), product.getName(), product.getPrice(), product.getStockQuantity()
-                ));
-            }
-
-            bot.sendTextMessage(chatId, message.toString());
-
-        } catch (Exception e) {
-            bot.sendTextMessage(chatId, "❌ Ошибка при поиске товаров: " + e.getMessage());
-        }
+//        try {
+//            List<ProductResponse> products = productServiceClient.searchProduct(query);
+//
+//            if (products.isEmpty()) {
+//                bot.sendTextMessage(chatId, "🔍 Товары по запросу '" + query + "' не найдены");
+//                return;
+//            }
+//
+//            StringBuilder message = new StringBuilder("🔍 *Результаты поиска:* '" + query + "'\n\n");
+//
+//            for (ProductResponse product : products) {
+//                message.append(String.format(
+//                        "🆔 *ID:* %d\n📝 *Название:* %s\n💵 *Цена:* %s ₽\n📦 *Остаток:* %d шт.\n\n",
+//                        product.getId(), product.getName(), product.getPrice(), product.getStockQuantity()
+//                ));
+//            }
+//
+//            bot.sendTextMessage(chatId, message.toString());
+//
+//        } catch (Exception e) {
+//            bot.sendTextMessage(chatId, "❌ Ошибка при поиске товаров: " + e.getMessage());
+//        }
     }
 
     private InlineKeyboardButton createButton(String text, String callbackData) {

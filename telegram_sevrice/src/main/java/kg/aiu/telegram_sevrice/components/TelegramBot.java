@@ -149,10 +149,10 @@ public class TelegramBot extends TelegramLongPollingBot {
                 sessionService.saveSession(chatId, session);
             } else if (data.startsWith("product_edit_")) {
                 Long productId = Long.parseLong(data.split("_")[2]);
-                productHandlers.startProductResponseEditing(chatId, productId);
+                productHandlers.startProductEditing(chatId, productId);
             } else if (data.startsWith("product_delete_")) {
                 Long productId = Long.parseLong(data.split("_")[2]);
-                productHandlers.deleteProductResponse(chatId, productId);
+                productHandlers.deleteProduct(chatId, productId);
             } else if (data.equals("product_create")) {
                 TelSessionModel session = sessionService.getSession(chatId);
                 productHandlers.startProductResponseCreation(chatId, session);
