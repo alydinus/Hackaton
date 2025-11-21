@@ -2,6 +2,7 @@ package kg.shoro.crm.service;
 
 import kg.shoro.crm.dto.request.CreateProductRequest;
 import kg.shoro.crm.dto.request.UpdateProductRequest;
+import kg.shoro.crm.model.OrderProduct;
 import kg.shoro.crm.model.Product;
 
 import java.util.List;
@@ -12,4 +13,6 @@ public interface ProductService {
     Product createProduct(CreateProductRequest request);
     Product updateProduct(Long id, UpdateProductRequest request);
     void deleteProduct(Long id);
+
+    List<OrderProduct> getProductsByIds(List<Long> longs);
 }

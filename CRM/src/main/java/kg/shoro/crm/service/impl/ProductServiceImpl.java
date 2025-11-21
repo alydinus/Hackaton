@@ -3,6 +3,7 @@ package kg.shoro.crm.service.impl;
 import kg.shoro.crm.dto.request.CreateProductRequest;
 import kg.shoro.crm.dto.request.UpdateProductRequest;
 import kg.shoro.crm.exception.ProductNotFoundException;
+import kg.shoro.crm.model.OrderProduct;
 import kg.shoro.crm.model.Product;
 import kg.shoro.crm.repository.ProductRepository;
 import kg.shoro.crm.service.ProductService;
@@ -53,5 +54,9 @@ public class ProductServiceImpl implements ProductService {
                 () -> new ProductNotFoundException("Product not found with id " + id)
         );
         productRepository.delete(product);
+    }
+
+    public List<OrderProduct> getProductsByIds(List<Long> longs) {
+        return productRepository.findAllByIdIn(longs);
     }
 }
