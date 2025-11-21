@@ -1,3 +1,12 @@
 spring:
   application:
     name: split-up-service
+  datasource:
+    username: user
+    password: 1
+    url: jdbc:postgresql://localhost:5434/bill_db
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
