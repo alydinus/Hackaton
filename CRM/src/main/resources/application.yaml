@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: CRM
+  datasource:
+    url: jdbc:postgresql://localhost:5435/crm_db
+    username: user
+    password: 1
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true

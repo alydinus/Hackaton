@@ -5,9 +5,9 @@ services:
     image: postgres:16
     container_name: hackaton_postgres
     ports:
-      - "5434:5432"
+      - "5435:5432"
     environment:
-      POSTGRES_DB: bill_db
+      POSTGRES_DB: crm_db
       POSTGRES_USER: user
       POSTGRES_PASSWORD: 1
     volumes:
