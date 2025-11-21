@@ -43,6 +43,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                 handleMessage(update.getMessage());
             } else if (update.hasCallbackQuery()) {
                 handleCallback(update.getCallbackQuery());
+
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -54,34 +55,33 @@ public class TelegramBot extends TelegramLongPollingBot {
         String text = message.getText();
         TelSessionModel session = sessionService.getSession(chatId);
 
-        System.out.println("Received message from " + chatId + ": " + text + " (state: " + session.getState() + ")");
+        log.info("Received message from " + chatId + ": " + text + " (state: " + session.getState() + ")");
 
-        // Обработка состояний
         if (session.getState() != TelSessionModel.BotState.IDLE) {
             handleStateMessage(chatId, text, session);
             sessionService.saveSession(chatId, session);
             return;
         }
 
-        // Обработка команд
         switch (text) {
-            case "/start":
             case "📋 Главное меню":
+
+                break;
             case "Назад":
                 sendMainMenu(chatId);
                 break;
             case "📦 Товары":
-                productHandlers.handleProductsCommand(chatId);
+                productHandlers.handleProductResponsesCommand(chatId);
                 break;
             case "📋 Заказы":
-                orderHandlers.handleOrdersCommand(chatId);
+                orderHandlers.handleOrderResponsesCommand(chatId);
                 break;
             case "🆕 Новый товар":
-                productHandlers.startProductCreation(chatId, session);
+                productHandlers.startProductResponseCreation(chatId, session);
                 sessionService.saveSession(chatId, session);
                 break;
             case "➕ Новый заказ":
-                orderHandlers.startOrderCreation(chatId, session);
+                orderHandlers.startOrderResponseCreation(chatId, session);
                 sessionService.saveSession(chatId, session);
                 break;
             case "📊 Статистика":
@@ -105,18 +105,18 @@ public class TelegramBot extends TelegramLongPollingBot {
             case AWAITING_PRODUCT_PRICE:
             case AWAITING_PRODUCT_STOCK:
             case AWAITING_PRODUCT_CATEGORY:
-                productHandlers.processProductCreation(chatId, text, session);
+                productHandlers.processProductResponseCreation(chatId, text, session);
                 break;
             case AWAITING_ORDER_CUSTOMER:
             case AWAITING_ORDER_QUANTITY:
-                orderHandlers.processOrderCreation(chatId, text, session);
+                orderHandlers.processOrderResponseCreation(chatId, text, session);
                 break;
             case SEARCHING_PRODUCTS:
-                productHandlers.searchProducts(chatId, text);
+                productHandlers.searchProductResponses(chatId, text);
                 session.setState(TelSessionModel.BotState.IDLE);
                 break;
             case SEARCHING_ORDERS:
-                orderHandlers.searchOrders(chatId, text);
+                orderHandlers.searchOrderResponses(chatId, text);
                 session.setState(TelSessionModel.BotState.IDLE);
                 break;
             default:
@@ -137,25 +137,25 @@ public class TelegramBot extends TelegramLongPollingBot {
         try {
             if (data.startsWith("products_list_")) {
                 int page = Integer.parseInt(data.split("_")[2]);
-                productHandlers.showProductsList(chatId, page);
+                productHandlers.showProductResponsesList(chatId, page);
             } else if (data.startsWith("product_detail_")) {
                 Long productId = Long.parseLong(data.split("_")[2]);
-                productHandlers.showProductDetails(chatId, productId);
+                productHandlers.showProductResponseDetails(chatId, productId);
             } else if (data.startsWith("product_category_")) {
                 String category = data.substring("product_category_".length());
                 TelSessionModel session = sessionService.getSession(chatId);
                 session.getContext().put("category", category);
-                productHandlers.completeProductCreation(chatId, session);
+                productHandlers.completeProductResponseCreation(chatId, session);
                 sessionService.saveSession(chatId, session);
             } else if (data.startsWith("product_edit_")) {
                 Long productId = Long.parseLong(data.split("_")[2]);
-                productHandlers.startProductEditing(chatId, productId);
+                productHandlers.startProductResponseEditing(chatId, productId);
             } else if (data.startsWith("product_delete_")) {
                 Long productId = Long.parseLong(data.split("_")[2]);
-                productHandlers.deleteProduct(chatId, productId);
+                productHandlers.deleteProductResponse(chatId, productId);
             } else if (data.equals("product_create")) {
                 TelSessionModel session = sessionService.getSession(chatId);
-                productHandlers.startProductCreation(chatId, session);
+                productHandlers.startProductResponseCreation(chatId, session);
                 sessionService.saveSession(chatId, session);
             } else if (data.equals("products_search")) {
                 TelSessionModel session = sessionService.getSession(chatId);
@@ -163,20 +163,20 @@ public class TelegramBot extends TelegramLongPollingBot {
                 sendTextMessage(chatId, "🔍 Введите название товара для поиска:");
                 sessionService.saveSession(chatId, session);
             } else if (data.equals("orders_list")) {
-                orderHandlers.showOrdersList(chatId, 0);
+                orderHandlers.showOrderResponsesList(chatId, 0);
             } else if (data.equals("order_create")) {
                 TelSessionModel session = sessionService.getSession(chatId);
-                orderHandlers.startOrderCreation(chatId, session);
+                orderHandlers.startOrderResponseCreation(chatId, session);
                 sessionService.saveSession(chatId, session);
             } else if (data.startsWith("order_detail_")) {
                 Long orderId = Long.parseLong(data.split("_")[2]);
-                orderHandlers.showOrderDetails(chatId, orderId);
+                orderHandlers.showOrderResponseDetails(chatId, orderId);
             } else if (data.equals("main_menu")) {
                 sendMainMenu(chatId);
             } else if (data.equals("refresh_products")) {
-                productHandlers.showProductsList(chatId, 0);
+                productHandlers.showProductResponsesList(chatId, 0);
             } else if (data.equals("refresh_orders")) {
-                orderHandlers.showOrdersList(chatId, 0);
+                orderHandlers.showOrderResponsesList(chatId, 0);
             } else {
                 sendTextMessage(chatId, "❌ Неизвестная команда: " + data);
             }

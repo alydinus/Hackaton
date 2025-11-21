@@ -15,7 +15,7 @@ public class TelSessionModel {
     public enum BotState {
         IDLE,
 
-        // Order states
+        // OrderResponse states
         AWAITING_ORDER_CUSTOMER,
         AWAITING_ORDER_PRODUCT_SELECTION,
         AWAITING_ORDER_QUANTITY,
@@ -23,7 +23,7 @@ public class TelSessionModel {
         AWAITING_ORDER_PRODUCT_NAME,
         AWAITING_ORDER_AMOUNT,
 
-        // Product states
+        // ProductResponse states
         AWAITING_PRODUCT_NAME,
         AWAITING_PRODUCT_DESCRIPTION,
         AWAITING_PRODUCT_PRICE,
@@ -142,11 +142,11 @@ public class TelSessionModel {
         return this.state == BotState.IDLE;
     }
 
-    public boolean isCreatingProduct() {
+    public boolean isCreatingProductResponse() {
         return isInFlow("PRODUCT_CREATION");
     }
 
-    public boolean isCreatingOrder() {
+    public boolean isCreatingOrderResponse() {
         return isInFlow("ORDER_CREATION");
     }
 
@@ -165,12 +165,12 @@ public class TelSessionModel {
         this.lastUpdated = LocalDateTime.now();
     }
 
-    public void startProductCreation() {
+    public void startProductResponseCreation() {
         startFlow("PRODUCT_CREATION");
         setState(BotState.AWAITING_PRODUCT_NAME);
     }
 
-    public void startOrderCreation() {
+    public void startOrderResponseCreation() {
         startFlow("ORDER_CREATION");
         setState(BotState.AWAITING_ORDER_CUSTOMER);
     }
