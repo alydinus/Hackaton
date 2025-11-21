@@ -1,0 +1,4 @@
+.idea/**
+target/**
+crm/target
+shared/target

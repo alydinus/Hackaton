@@ -4,6 +4,7 @@
     <option name="moduleMapping">
       <map>
         <entry key="SplitUpService" value="CafeHelper" />
+        <entry key="shared" value="shared-dto" />
       </map>
     </option>
   </component>

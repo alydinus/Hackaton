@@ -1,0 +1,15 @@
+package kg.shoro.crm.service;
+
+import kg.shoro.crm.dto.request.CreateOrderRequest;
+import kg.shoro.crm.dto.request.UpdateOrderRequest;
+import kg.shoro.crm.model.Order;
+
+import java.util.List;
+
+public interface OrderService {
+    List<Order> getAllOrders();
+    Order getOrderById(Long id);
+    Order createOrder(CreateOrderRequest request);
+    Order updateOrder(Long id, UpdateOrderRequest request);
+    void deleteOrder(Long id);
+}

@@ -1,7 +1,6 @@
-package kg.spring.shared.dto.response;
+package kg.shoro.crm.dto.request;
 
-public record ProductResponse(
-        Long id,
+public record UpdateProductRequest(
         String name,
         String description,
         Double price,
