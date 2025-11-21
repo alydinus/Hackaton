@@ -6,11 +6,13 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import kg.spring.shared.enums.OrderStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -29,6 +31,12 @@ public class Order {
     @OneToMany
     private List<OrderProduct> orderProducts;
 
+    private OrderStatus status;
 
+    private LocalDateTime createdAt;
+
+    private Integer quantity;
+
+    private Double price;
 
 }

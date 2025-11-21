@@ -1,11 +1,17 @@
 package kg.aiu.telegram_sevrice.components;
 
 import kg.aiu.telegram_sevrice.service.OrderServiceClient;
+import kg.aiu.telegram_sevrice.service.ProductServiceClient;
+import kg.spring.shared.dto.request.CreateOrderRequest;
 import kg.spring.shared.dto.response.OrderResponse;
+import kg.spring.shared.dto.response.ProductResponse;
+import kg.spring.shared.enums.OrderStatus;
+import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,11 +19,13 @@ import java.util.List;
 @Component
 public class OrderHandler {
 
-    private final OrderServiceClient telService;
+    private final OrderServiceClient orderService;
+    private final ProductServiceClient productService;
     private final TelegramBot bot;
 
-    public OrderHandler(OrderServiceClient telService, TelegramBot bot) {
-        this.telService = telService;
+    public OrderHandler(OrderServiceClient orderService, ProductServiceClient productService, TelegramBot bot) {
+        this.orderService = orderService;
+        this.productService = productService;
         this.bot = bot;
     }
 
@@ -49,14 +57,13 @@ public class OrderHandler {
 
     public void showOrderResponsesList(Long chatId, int page) {
         try {
-            List<OrderResponse> orders = telService.getAllOrderResponses();
+            List<OrderResponse> orders = orderService.getAllOrderResponses();
 
             if (orders.isEmpty()) {
                 bot.sendTextMessage(chatId, "📭 Заказы не найдены");
                 return;
             }
 
-            // Пагинация
             int pageSize = 5;
             int totalPages = (int) Math.ceil((double) orders.size() / pageSize);
             int start = page * pageSize;
@@ -68,9 +75,9 @@ public class OrderHandler {
                 OrderResponse order = orders.get(i);
                 String statusEmoji = getStatusEmoji(order.status());
                 message.append(String.format(
-                        "%s *ID:* %d\n👤 *Клиент:* %s\n📦 *Товар:* %s\n💵 *Сумма:* %s ₽\n\n",
-                        statusEmoji, order.id(), order.customerId(),
-                        order.productId()
+                        "%s *ID:* %d\n👤 *Клиент:* %s\n📦 *Товары:* %s\n💵 *Сумма:* %s ₽\n\n",
+                        statusEmoji, order.id(), order.customer().id(),
+                        getProductIdsFromOrder(order.products())
                 ));
             }
 
@@ -84,18 +91,17 @@ public class OrderHandler {
 
     public void showOrderResponseDetails(Long chatId, Long orderId) {
         try {
-            OrderResponse order = telService.getOrderResponseById(orderId);
+            OrderResponse order = orderService.getOrderResponseById(orderId);
             String statusEmoji = getStatusEmoji(order.status());
 
             String message = String.format(
                     "📄 *Детали заказа:*\n\n" +
                             "%s *ID:* %d\n" +
                             "👤 *Клиент:* %s\n" +
-                            "📦 *Товар:* %s\n" +
-                            "💵 *Сумма:* %s ₽\n" +
+                            "📦 *Товары:* %s\n" +
                             "📊 *Статус:* %s\n" +
                             "⏰ *Создан:* %s",
-                    statusEmoji, order.id(), order.customerId(), order.productId()
+                    statusEmoji, order.id(), order.customer().id(), getProductIdsFromOrder(order.products())
                     , order.status(),
                     order.createdAt().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")));
 
@@ -155,7 +161,7 @@ public class OrderHandler {
 
     private void showProductResponsesForOrderResponse(Long chatId) {
         try {
-            List<com.example.crm.model.ProductResponse> products = telService.getAllProductResponses();
+            List<ProductResponse> products = productService.getAllProductResponses();
 
             if (products.isEmpty()) {
                 bot.sendTextMessage(chatId, "📭 Нет доступных товаров для заказа");
@@ -167,13 +173,16 @@ public class OrderHandler {
             InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup();
             List<List<InlineKeyboardButton>> rows = new ArrayList<>();
 
-            for (com.example.crm.model.ProductResponse product : products) {
-                if (product.getStockQuantity() > 0) {
+            for (ProductResponse product : products) {
+                if(product.quantity() > 0){
                     List<InlineKeyboardButton> row = new ArrayList<>();
-                    String buttonText = String.format("%s - %s ₽", product.getName(), product.getPrice());
-                    row.add(createButton(buttonText, "select_product_" + product.getId()));
+                    String buttonText = String.format("%s - %s ₽", product.name(), product.price());
+                    row.add(createButton(buttonText, "select_product_" + product.id()));
                     rows.add(row);
+                } else{
+                    //add here code later
                 }
+
             }
 
             List<InlineKeyboardButton> backRow = new ArrayList<>();
@@ -189,60 +198,68 @@ public class OrderHandler {
         }
     }
 
-    public void searchOrderResponses(Long chatId, String query) {
-        try {
-            List<OrderResponse> orders = telService.searchOrderResponses(query);
-
-            if (orders.isEmpty()) {
-                bot.sendTextMessage(chatId, "🔍 Заказы по запросу '" + query + "' не найдены");
-                return;
-            }
-
-            StringBuilder message = new StringBuilder("🔍 *Результаты поиска заказов:* '" + query + "'\n\n");
-
-            for (OrderResponse order : orders) {
-                String statusEmoji = getStatusEmoji(order.status());
-                message.append(String.format(
-                        "%s *ID:* %d\n👤 *Клиент:* %s\n📦 *Товар:* %s\n💵 *Сумма:* %s ₽\n\n",
-                        statusEmoji, order.id(), order.customerId(),
-                        order.productId()
-                ));
-            }
-
-            bot.sendTextMessage(chatId, message.toString());
-
-        } catch (Exception e) {
-            bot.sendTextMessage(chatId, "❌ Ошибка при поиске заказов: " + e.getMessage());
-        }
-    }
+//    public void searchOrderResponses(Long chatId, String query) {
+//        try {
+//            List<OrderResponse> orders = orderService.searchOrderResponses(query);
+//
+//            if (orders.isEmpty()) {
+//                bot.sendTextMessage(chatId, "🔍 Заказы по запросу '" + query + "' не найдены");
+//                return;
+//            }
+//
+//            StringBuilder message = new StringBuilder("🔍 *Результаты поиска заказов:* '" + query + "'\n\n");
+//
+//            for (OrderResponse order : orders) {
+//                String statusEmoji = getStatusEmoji(order.status());
+//                message.append(String.format(
+//                        "%s *ID:* %d\n👤 *Клиент:* %s\n📦 *Товар:* %s\n💵 *Сумма:* %s ₽\n\n",
+//                        statusEmoji, order.id(), order.customerId(),
+//                        order.productId()
+//                ));
+//            }
+//
+//            bot.sendTextMessage(chatId, message.toString());
+//
+//        } catch (Exception e) {
+//            bot.sendTextMessage(chatId, "❌ Ошибка при поиске заказов: " + e.getMessage());
+//        }
+//    }
 
     private void completeOrderResponseCreation(Long chatId, TelSessionModel session) {
         try {
-            String customerName = (String) session.getContext().get("customerName");
+//            String customerName = (String) session.getContext().get("customerName");
+            //Just username for later
+            Long customerId = (Long)session.getContext().get("customerName");
             Long productId = (Long) session.getContext().get("selectedProductResponseId");
             Integer quantity = (Integer) session.getContext().get("quantity");
 
-            com.example.crm.model.ProductResponse product = telService.getProductResponseById(productId);
+            ProductResponse product = productService.getProductResponseById(productId);
+            List<Long> productIds = new ArrayList<>();
+            //add many products later
+            productIds.add(productId);
 
-            OrderResponse order = new OrderResponse();
-            order.setCustomerName(customerName);
-            order.setProductResponse(product.getName());
-            order.setAmount(product.getPrice().multiply(new BigDecimal(quantity)));
-            order.setStatus(OrderResponseStatus.NEW);
-            order.setCreatedAt(java.time.LocalDateTime.now());
+            CreateOrderRequest order = new CreateOrderRequest(
+                    customerId,
+                    productIds,
+                    quantity,
+                    OrderStatus.UNPAID,
+                    LocalDateTime.now(),
+                    getPrice(productIds)
+                    );
 
-            OrderResponse createdOrderResponse = telService.createOrderResponse(order);
+            OrderResponse createdOrderResponse = orderService.createOrder(order);
 
             String message = String.format(
                     "✅ *Заказ успешно создан!*\n\n" +
                             "🆔 ID: %d\n" +
                             "👤 Клиент: %s\n" +
-                            "📦 Товар: %s\n" +
+                            "📦 Товары: %s\n" +
                             "🔢 Количество: %d шт.\n" +
                             "💵 Сумма: %s ₽\n" +
                             "📊 Статус: %s",
-                    createdOrderResponse.getId(), createdOrderResponse.getCustomerName(), createdOrderResponse.getProductResponse(),
-                    quantity, createdOrderResponse.getAmount(), createdOrderResponse.getStatus()
+                    createdOrderResponse.id(), createdOrderResponse.customer().name(),
+                    getProductIdsFromOrder(createdOrderResponse.products()),
+                    quantity, order.price(), createdOrderResponse.status()
             );
 
             bot.sendTextMessage(chatId, message);
@@ -254,12 +271,12 @@ public class OrderHandler {
         }
     }
 
-    private String getStatusEmoji(OrderResponseStatus status) {
+    private String getStatusEmoji(OrderStatus status) {
         switch (status) {
-            case NEW: return "🆕";
-            case IN_PROCESS: return "🔄";
-            case COMPLETED: return "✅";
-            case CANCELLED: return "❌";
+            case OrderStatus.UNPAID: return "🆕";
+            case OrderStatus.RETURN: return "🔄";
+            case OrderStatus.PAID: return "✅";
+            case OrderStatus.CANCELED: return "❌";
             default: return "📋";
         }
     }
@@ -275,7 +292,6 @@ public class OrderHandler {
         InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
 
-        // Кнопки навигации
         List<InlineKeyboardButton> navRow = new ArrayList<>();
 
         if (currentPage > 0) {
@@ -290,12 +306,10 @@ public class OrderHandler {
             rows.add(navRow);
         }
 
-        // Кнопка обновления
         List<InlineKeyboardButton> refreshRow = new ArrayList<>();
         refreshRow.add(createButton("🔄 Обновить", "orders_list_" + currentPage));
         rows.add(refreshRow);
 
-        // Кнопка возврата
         List<InlineKeyboardButton> backRow = new ArrayList<>();
         backRow.add(createButton("📋 Управление заказами", "orders_list"));
         backRow.add(createButton("📋 Главное меню", "main_menu"));
@@ -303,5 +317,23 @@ public class OrderHandler {
 
         keyboard.setKeyboard(rows);
         return keyboard;
+    }
+
+    private String getProductIdsFromOrder(List<ProductResponse> responses) {
+        StringBuilder productIds = new StringBuilder();
+      for(ProductResponse response : responses) {
+          productIds.append(response.id());
+          productIds.append(", ");
+      }
+      return productIds.toString();
+    };
+
+    private Double getPrice(List<Long> responseIds) {
+        Double d = 0.0;
+        for(Long id : responseIds) {
+            ProductResponse response = productService.getProductResponseById(id);
+            d = d + response.price() * response.quantity();
+        }
+        return d;
     }
 }
