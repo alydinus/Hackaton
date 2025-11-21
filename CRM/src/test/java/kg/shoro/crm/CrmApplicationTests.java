@@ -1,13 +1,13 @@
-package kg.shoro.market.splitupservice;
+package kg.shoro.crm;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class SplitUpServiceApplicationTests {
+class CrmApplicationTests {
 
-	@Test
-	void contextLoads() {
-	}
+    @Test
+    void contextLoads() {
+    }
 
 }

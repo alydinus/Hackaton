@@ -9,9 +9,11 @@
         <processorPath useClasspath="false">
           <entry name="$USER_HOME$/.m2/repository/org/projectlombok/lombok/unknown/lombok-unknown.jar" />
         </processorPath>
-        <module name="SplitUpService" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="SplitUpService" target="21" />
+    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
