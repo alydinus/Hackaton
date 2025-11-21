@@ -1,10 +1,10 @@
-package kg.shoro.market.merchantservice;
+package kg.shoro.market.splitupservice;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class MerchantServiceApplicationTests {
+class SplitUpServiceApplicationTests {
 
 	@Test
 	void contextLoads() {

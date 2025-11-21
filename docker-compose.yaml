@@ -1,11 +1,22 @@
 version: '3.8'
 
 services:
-  db:
+  db_1:
     image: postgres:latest
     restart: always
     environment:
-      POSTGRES_DB: hackaton_db
+      POSTGRES_DB: merchant_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: 1
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+  db_2:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_DB: bill_db
       POSTGRES_USER: user
       POSTGRES_PASSWORD: 1
     ports:
