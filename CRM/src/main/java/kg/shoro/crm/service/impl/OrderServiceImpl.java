@@ -1,12 +1,12 @@
 package kg.shoro.crm.service.impl;
 
+import jakarta.transaction.Transactional;
 import kg.shoro.crm.exception.OrderNotFoundException;
 import kg.shoro.crm.model.Customer;
 import kg.shoro.crm.model.Order;
 import kg.shoro.crm.model.Product;
 import kg.shoro.crm.repository.OrderRepository;
 import kg.shoro.crm.service.CustomerService;
-import kg.shoro.crm.service.OrderProductService;
 import kg.shoro.crm.service.OrderService;
 import kg.shoro.crm.service.ProductService;
 import kg.spring.shared.dto.request.CreateOrderRequest;
@@ -25,7 +25,6 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
     private final CustomerService customerService;
-    private final OrderProductService orderProductService;
     private final ProductService productService;
 
     private final AmqpTemplate amqpTemplate;
@@ -78,4 +77,14 @@ public class OrderServiceImpl implements OrderService {
         );
         orderRepository.delete(order);
     }
+
+    @Transactional
+    public void attachQrToOrder(Long orderId, String filePath) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow();
+
+        order.setQrPath(filePath);
+        orderRepository.save(order);
+    }
+
 }
