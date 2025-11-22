@@ -1,0 +1,20 @@
+server:
+  port: 8086
+
+telegram:
+  bot:
+    username: "Hacabotbot"
+    token: "8452215320:AAG1Z4GplpLyw2WNsKlGB34JJYpoDELoaAA"
+
+logging:
+  level:
+    org.springframework.web: DEBUG
+    
+spring:
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+    template:
+      exchange: crm.exchange
