@@ -45,6 +45,9 @@ public class OrderServiceImpl implements OrderService {
 
     public Order createOrder(CreateOrderRequest request) {
         Customer customer = customerService.getCustomerById(request.customerId());
+        if (customer.getDebt() > 0) {
+            throw new IllegalStateException("Customer has outstanding debt");
+        }
         List<Product> productsByIds = productService.getAllProductsByIds(request.productIds());
         Order order = Order.builder()
                 .customer(customer)

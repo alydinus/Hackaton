@@ -12,6 +12,7 @@
         <outputRelativeToContentRoot value="true" />
         <module name="qr-service" />
         <module name="shared" />
+        <module name="telegram_sevrice" />
       </profile>
       <profile name="Annotation profile for workspace" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
@@ -40,6 +41,7 @@
       <module name="SplitUpService" options="-parameters" />
       <module name="qr-service" options="-parameters" />
       <module name="shared" options="" />
+      <module name="telegram_sevrice" options="-parameters" />
     </option>
   </component>
 </project>
