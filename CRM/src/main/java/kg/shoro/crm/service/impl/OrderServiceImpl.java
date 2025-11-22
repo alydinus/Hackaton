@@ -1,5 +1,6 @@
 package kg.shoro.crm.service.impl;
 
+import jakarta.transaction.Transactional;
 import kg.shoro.crm.exception.OrderNotFoundException;
 import kg.shoro.crm.model.Customer;
 import kg.shoro.crm.model.Order;
@@ -77,6 +78,7 @@ public class OrderServiceImpl implements OrderService {
         orderRepository.delete(order);
     }
 
+    @Transactional
     public void attachQrToOrder(Long orderId, String filePath) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow();

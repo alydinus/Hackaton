@@ -15,6 +15,7 @@ public class QrGeneratedListener {
     @RabbitListener(queues = "qr.generated")
     public void onQrGenerated(QrGeneratedEvent event) {
         orderService.attachQrToOrder(event.orderId(), event.filePath());
+        System.out.println("QR saved for order " + event.orderId());
     }
 }
 
