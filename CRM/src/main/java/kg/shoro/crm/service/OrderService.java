@@ -12,4 +12,6 @@ public interface OrderService {
     Order createOrder(CreateOrderRequest request);
     Order updateOrder(Long id, UpdateOrderRequest request);
     void deleteOrder(Long id);
+
+    void attachQrToOrder(Long aLong, String s);
 }
