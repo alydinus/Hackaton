@@ -5,6 +5,7 @@ import kg.aiu.telegram_sevrice.components.rabbit.RabbitSender;
 import kg.spring.shared.dto.request.CreateProductRequest;
 import kg.spring.shared.dto.request.DeleteProductRequest;
 import kg.spring.shared.dto.response.ProductResponse;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -19,10 +20,10 @@ public class ProductHandler {
 
     private final RabbitRpcClient rabbitClient;
     private final RabbitSender rabbitSender;
-    private final TelegramBot bot;
+    private final @Lazy TelegramBot bot;
     private final Random random;
 
-    public ProductHandler(RabbitRpcClient rabbitClient, RabbitSender rabbitSender, TelegramBot bot) {
+    public ProductHandler(RabbitRpcClient rabbitClient, RabbitSender rabbitSender,@Lazy TelegramBot bot) {
         this.rabbitClient = rabbitClient;
         this.rabbitSender = rabbitSender;
         this.bot = bot;

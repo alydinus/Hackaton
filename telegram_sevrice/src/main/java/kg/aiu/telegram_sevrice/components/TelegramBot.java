@@ -4,6 +4,7 @@ import kg.aiu.telegram_sevrice.service.SessionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -20,7 +21,7 @@ import java.util.List;
 public class TelegramBot extends TelegramLongPollingBot {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     private final SessionService sessionService;
-    private final ProductHandler productHandlers;
+    private final @Lazy ProductHandler productHandlers;
     private final OrderHandler orderHandlers;
 
     @Value("${telegram.bot.username}")
@@ -28,7 +29,7 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     public TelegramBot(@Value("${telegram.bot.token}") String botToken,
                           SessionService sessionService,
-                          ProductHandler productHandlers,
+                          @Lazy ProductHandler productHandlers,
                           OrderHandler orderHandlers) {
         super(botToken);
         this.sessionService = sessionService;
@@ -110,10 +111,6 @@ public class TelegramBot extends TelegramLongPollingBot {
             case AWAITING_ORDER_CUSTOMER:
             case AWAITING_ORDER_QUANTITY:
                 orderHandlers.processOrderResponseCreation(chatId, text, session);
-                break;
-            case SEARCHING_PRODUCTS:
-                productHandlers.searchProductResponses(chatId, text);
-                session.setState(TelSessionModel.BotState.IDLE);
                 break;
             default:
                 sendTextMessage(chatId, "Неизвестное состояние. Возврат в главное меню.");
