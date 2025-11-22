@@ -1,0 +1,17 @@
+spring:
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+
+qr:
+  out-dir: ./qr
+
+queues:
+  order-created: order.created
+  qr-generated: qr.generated
+
+exchange: crm.exchange
+server:
+  port: 8081

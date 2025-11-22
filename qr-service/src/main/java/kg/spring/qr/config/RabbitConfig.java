@@ -1,4 +1,4 @@
-package kg.shoro.crm.rabbit;
+package kg.spring.qr.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.amqp.core.Binding;
@@ -19,11 +19,14 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RabbitConfig {
 
-    @Value("${crm.exchange}")
+    @Value("${exchange}")
     private String exchangeName;
 
-    @Value("${crm.routing.order-created}")
-    private String orderCreatedRoutingKey;
+    @Value("${queues.order-created}")
+    private String orderCreatedQueueName;
+
+    @Value("${queues.qr-generated}")
+    private String qrGeneratedQueueName;
 
     @Bean
     public TopicExchange crmExchange() {
@@ -37,27 +40,22 @@ public class RabbitConfig {
 
     @Bean
     public Queue orderCreatedQueue() {
-        return QueueBuilder.durable(orderCreatedRoutingKey).build();
-    }
-
-    @Bean
-    public Binding bindOrderCreated(Queue orderCreatedQueue, TopicExchange crmExchange) {
-        return BindingBuilder
-                .bind(orderCreatedQueue)
-                .to(crmExchange)
-                .with(orderCreatedRoutingKey);
+        return QueueBuilder.durable(orderCreatedQueueName).build();
     }
 
     @Bean
     public Queue qrGeneratedQueue() {
-        return QueueBuilder.durable("qr.generated").build();
+        return QueueBuilder.durable(qrGeneratedQueueName).build();
     }
 
     @Bean
-    public Binding qrGeneratedBinding(Queue qrGeneratedQueue, TopicExchange crmExchange) {
-        return BindingBuilder.bind(qrGeneratedQueue)
-                .to(crmExchange)
-                .with("qr.generated");
+    public Binding bindOrderCreated(Queue orderCreatedQueue, TopicExchange crmExchange) {
+        return BindingBuilder.bind(orderCreatedQueue).to(crmExchange).with(orderCreatedQueueName);
+    }
+
+    @Bean
+    public Binding bindQrGenerated(Queue qrGeneratedQueue, TopicExchange crmExchange) {
+        return BindingBuilder.bind(qrGeneratedQueue).to(crmExchange).with(qrGeneratedQueueName);
     }
 
     @Bean

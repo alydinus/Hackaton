@@ -10,6 +10,7 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="qr-service" />
         <module name="shared" />
       </profile>
       <profile name="Annotation profile for workspace" enabled="true">
@@ -37,6 +38,7 @@
       <module name="Crm" options="-parameters" />
       <module name="PaymentService" options="-parameters" />
       <module name="SplitUpService" options="-parameters" />
+      <module name="qr-service" options="-parameters" />
       <module name="shared" options="" />
     </option>
   </component>

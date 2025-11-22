@@ -4,6 +4,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import kg.spring.shared.enums.OrderStatus;
@@ -30,16 +31,10 @@ public class Order {
     @ManyToOne
     private Customer customer;
 
-    @OneToMany
-    private List<OrderProduct> orderProducts;
+    @ManyToMany
+    private List<Product> products;
 
+    private String qrPath;
     private OrderStatus status;
 
-    private LocalDateTime createdAt;
-
-    private Integer quantity;
-
-    private Double price;
-
-    private List<Product> products;
 }

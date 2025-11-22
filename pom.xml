@@ -9,6 +9,7 @@
     <modules>
         <module>crm</module>
         <module>shared</module>
+        <module>qr-service</module>
         <module>telegram_sevrice</module>
     </modules>
 </project>
