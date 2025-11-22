@@ -25,8 +25,6 @@ public class TelSessionModel {
         AWAITING_PRODUCT_NAME,
         AWAITING_PRODUCT_DESCRIPTION,
         AWAITING_PRODUCT_PRICE,
-        AWAITING_PRODUCT_STOCK,
-        AWAITING_PRODUCT_CATEGORY,
 
         EDITING_ORDER,
         EDITING_PRODUCT_NAME,
@@ -216,10 +214,6 @@ public class TelSessionModel {
                 return "Ожидание описания товара";
             case AWAITING_PRODUCT_PRICE:
                 return "Ожидание цены товара";
-            case AWAITING_PRODUCT_STOCK:
-                return "Ожидание количества товара";
-            case AWAITING_PRODUCT_CATEGORY:
-                return "Ожидание категории товара";
             case AWAITING_ORDER_CUSTOMER:
                 return "Ожидание имени клиента";
             case AWAITING_ORDER_PRODUCT_SELECTION:

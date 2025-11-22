@@ -4,6 +4,7 @@ import kg.aiu.telegram_sevrice.service.SessionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -20,16 +21,17 @@ import java.util.List;
 public class TelegramBot extends TelegramLongPollingBot {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     private final SessionService sessionService;
-    private final ProductHandler productHandlers;
-    private final OrderHandler orderHandlers;
+    private final @Lazy ProductHandler productHandlers;
+    private final @Lazy OrderHandler orderHandlers;
 
     @Value("${telegram.bot.username}")
     private String botUsername;
 
     public TelegramBot(@Value("${telegram.bot.token}") String botToken,
                           SessionService sessionService,
-                          ProductHandler productHandlers,
-                          OrderHandler orderHandlers) {
+                          @Lazy ProductHandler productHandlers
+                          ,@Lazy OrderHandler orderHandlers
+    ) {
         super(botToken);
         this.sessionService = sessionService;
         this.productHandlers = productHandlers;
@@ -64,7 +66,7 @@ public class TelegramBot extends TelegramLongPollingBot {
         }
 
         switch (text) {
-            case "📋 Главное меню":
+            case "Главное меню":
 
                 break;
             case "Назад":
@@ -103,17 +105,11 @@ public class TelegramBot extends TelegramLongPollingBot {
             case AWAITING_PRODUCT_NAME:
             case AWAITING_PRODUCT_DESCRIPTION:
             case AWAITING_PRODUCT_PRICE:
-            case AWAITING_PRODUCT_STOCK:
-            case AWAITING_PRODUCT_CATEGORY:
                 productHandlers.processProductResponseCreation(chatId, text, session);
                 break;
             case AWAITING_ORDER_CUSTOMER:
             case AWAITING_ORDER_QUANTITY:
                 orderHandlers.processOrderResponseCreation(chatId, text, session);
-                break;
-            case SEARCHING_PRODUCTS:
-                productHandlers.searchProductResponses(chatId, text);
-                session.setState(TelSessionModel.BotState.IDLE);
                 break;
             default:
                 sendTextMessage(chatId, "Неизвестное состояние. Возврат в главное меню.");
@@ -188,19 +184,16 @@ public class TelegramBot extends TelegramLongPollingBot {
         ReplyKeyboardMarkup keyboard = new ReplyKeyboardMarkup();
         List<KeyboardRow> rows = new ArrayList<>();
 
-        // Первый ряд
         KeyboardRow row1 = new KeyboardRow();
         row1.add("📦 Товары");
         row1.add("📋 Заказы");
         rows.add(row1);
 
-        // Второй ряд
         KeyboardRow row2 = new KeyboardRow();
         row2.add("🆕 Новый товар");
         row2.add("➕ Новый заказ");
         rows.add(row2);
 
-        // Третий ряд
         KeyboardRow row3 = new KeyboardRow();
         row3.add("📊 Статистика");
         row3.add("❓ Помощь");
@@ -224,7 +217,6 @@ public class TelegramBot extends TelegramLongPollingBot {
     }
 
     private void showStatistics(Long chatId) {
-        // Здесь можно добавить реальную статистику
         String message = "📊 *Статистика*\n\n" +
                 "📦 Товаров: 15\n" +
                 "📋 Заказов: 47\n" +
