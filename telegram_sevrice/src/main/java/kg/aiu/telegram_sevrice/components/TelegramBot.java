@@ -22,7 +22,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     private final SessionService sessionService;
     private final @Lazy ProductHandler productHandlers;
-//    private final OrderHandler orderHandlers;
+    private final @Lazy OrderHandler orderHandlers;
 
     @Value("${telegram.bot.username}")
     private String botUsername;
@@ -30,12 +30,12 @@ public class TelegramBot extends TelegramLongPollingBot {
     public TelegramBot(@Value("${telegram.bot.token}") String botToken,
                           SessionService sessionService,
                           @Lazy ProductHandler productHandlers
-//                          ,OrderHandler orderHandlers
+                          ,@Lazy OrderHandler orderHandlers
     ) {
         super(botToken);
         this.sessionService = sessionService;
         this.productHandlers = productHandlers;
-//        this.orderHandlers = orderHandlers;
+        this.orderHandlers = orderHandlers;
     }
 
     @Override
@@ -76,15 +76,15 @@ public class TelegramBot extends TelegramLongPollingBot {
                 productHandlers.handleProductResponsesCommand(chatId);
                 break;
             case "📋 Заказы":
-//                orderHandlers.handleOrderResponsesCommand(chatId);
+                orderHandlers.handleOrderResponsesCommand(chatId);
                 break;
             case "🆕 Новый товар":
                 productHandlers.startProductResponseCreation(chatId, session);
                 sessionService.saveSession(chatId, session);
                 break;
             case "➕ Новый заказ":
-//                orderHandlers.startOrderResponseCreation(chatId, session);
-//                sessionService.saveSession(chatId, session);
+                orderHandlers.startOrderResponseCreation(chatId, session);
+                sessionService.saveSession(chatId, session);
                 break;
             case "📊 Статистика":
                 showStatistics(chatId);
@@ -109,7 +109,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                 break;
             case AWAITING_ORDER_CUSTOMER:
             case AWAITING_ORDER_QUANTITY:
-//                orderHandlers.processOrderResponseCreation(chatId, text, session);
+                orderHandlers.processOrderResponseCreation(chatId, text, session);
                 break;
             default:
                 sendTextMessage(chatId, "Неизвестное состояние. Возврат в главное меню.");
@@ -155,20 +155,20 @@ public class TelegramBot extends TelegramLongPollingBot {
                 sendTextMessage(chatId, "🔍 Введите название товара для поиска:");
                 sessionService.saveSession(chatId, session);
             } else if (data.equals("orders_list")) {
-//                orderHandlers.showOrderResponsesList(chatId, 0);
+                orderHandlers.showOrderResponsesList(chatId, 0);
             } else if (data.equals("order_create")) {
                 TelSessionModel session = sessionService.getSession(chatId);
-//                orderHandlers.startOrderResponseCreation(chatId, session);
+                orderHandlers.startOrderResponseCreation(chatId, session);
                 sessionService.saveSession(chatId, session);
             } else if (data.startsWith("order_detail_")) {
                 Long orderId = Long.parseLong(data.split("_")[2]);
-//                orderHandlers.showOrderResponseDetails(chatId, orderId);
+                orderHandlers.showOrderResponseDetails(chatId, orderId);
             } else if (data.equals("main_menu")) {
                 sendMainMenu(chatId);
             } else if (data.equals("refresh_products")) {
                 productHandlers.showProductResponsesList(chatId, 0);
             } else if (data.equals("refresh_orders")) {
-//                orderHandlers.showOrderResponsesList(chatId, 0);
+                orderHandlers.showOrderResponsesList(chatId, 0);
             } else {
                 sendTextMessage(chatId, "❌ Неизвестная команда: " + data);
             }
@@ -184,19 +184,16 @@ public class TelegramBot extends TelegramLongPollingBot {
         ReplyKeyboardMarkup keyboard = new ReplyKeyboardMarkup();
         List<KeyboardRow> rows = new ArrayList<>();
 
-        // Первый ряд
         KeyboardRow row1 = new KeyboardRow();
         row1.add("📦 Товары");
         row1.add("📋 Заказы");
         rows.add(row1);
 
-        // Второй ряд
         KeyboardRow row2 = new KeyboardRow();
         row2.add("🆕 Новый товар");
         row2.add("➕ Новый заказ");
         rows.add(row2);
 
-        // Третий ряд
         KeyboardRow row3 = new KeyboardRow();
         row3.add("📊 Статистика");
         row3.add("❓ Помощь");
@@ -220,7 +217,6 @@ public class TelegramBot extends TelegramLongPollingBot {
     }
 
     private void showStatistics(Long chatId) {
-        // Здесь можно добавить реальную статистику
         String message = "📊 *Статистика*\n\n" +
                 "📦 Товаров: 15\n" +
                 "📋 Заказов: 47\n" +
