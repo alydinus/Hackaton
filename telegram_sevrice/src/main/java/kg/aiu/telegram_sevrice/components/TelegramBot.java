@@ -72,24 +72,24 @@ public class TelegramBot extends TelegramLongPollingBot {
             case "Назад":
                 sendMainMenu(chatId);
                 break;
-            case "Товары":
+            case "📦 Товары":
                 productHandlers.handleProductResponsesCommand(chatId);
                 break;
-            case "Заказы":
+            case "📋 Заказы":
 //                orderHandlers.handleOrderResponsesCommand(chatId);
                 break;
-            case "Новый товар":
+            case "🆕 Новый товар":
                 productHandlers.startProductResponseCreation(chatId, session);
                 sessionService.saveSession(chatId, session);
                 break;
-            case "Новый заказ":
+            case "➕ Новый заказ":
 //                orderHandlers.startOrderResponseCreation(chatId, session);
 //                sessionService.saveSession(chatId, session);
                 break;
-            case "Статистика":
+            case "📊 Статистика":
                 showStatistics(chatId);
                 break;
-            case "Помощь":
+            case "❓ Помощь":
                 sendHelpMessage(chatId);
                 break;
             default:
