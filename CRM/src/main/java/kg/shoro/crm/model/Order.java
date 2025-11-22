@@ -35,6 +35,9 @@ public class Order {
     private List<Product> products;
 
     private String qrPath;
+
     private OrderStatus status;
+
+    private LocalDateTime createdAt;
 
 }

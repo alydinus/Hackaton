@@ -90,4 +90,19 @@ public class OrderServiceImpl implements OrderService {
         orderRepository.save(order);
     }
 
+    public Long countOrdersInLastDays(Long days) {
+        return orderRepository.countOrdersInLastDays(days);
+    }
+
+    public Double calculateTotalRevenueInLastDays(Long days) {
+        List<Order> orders = orderRepository.findAllWithProducts();
+        Double totalRevenue = 0.0;
+        for (Order order : orders) {
+            for (Product product : order.getProducts()) {
+                totalRevenue += product.getPrice();
+            }
+        }
+        return totalRevenue;
+    }
+
 }

@@ -14,4 +14,8 @@ public interface OrderService {
     void deleteOrder(Long id);
 
     void attachQrToOrder(Long aLong, String s);
+
+    Long countOrdersInLastDays(Long days);
+
+    Double calculateTotalRevenueInLastDays(Long days);
 }
