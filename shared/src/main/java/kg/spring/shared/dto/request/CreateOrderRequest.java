@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public record CreateOrderRequest(
+        Long tempId,
         Long customerId,
         List<Long> productIds,
         Integer quantity,

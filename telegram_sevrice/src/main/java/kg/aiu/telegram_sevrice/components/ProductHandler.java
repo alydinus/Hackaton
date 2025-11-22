@@ -1,8 +1,9 @@
 package kg.aiu.telegram_sevrice.components;
 
-import kg.aiu.telegram_sevrice.service.OrderServiceClient;
-import kg.aiu.telegram_sevrice.service.ProductServiceClient;
+import kg.aiu.telegram_sevrice.components.rabbit.RabbitRpcClient;
+import kg.aiu.telegram_sevrice.components.rabbit.RabbitSender;
 import kg.spring.shared.dto.request.CreateProductRequest;
+import kg.spring.shared.dto.request.DeleteProductRequest;
 import kg.spring.shared.dto.response.ProductResponse;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -11,19 +12,23 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 @Component
 public class ProductHandler {
 
-    private final OrderServiceClient orderServiceClient;
-    private final ProductServiceClient productServiceClient;
+    private final RabbitRpcClient rabbitClient;
+    private final RabbitSender rabbitSender;
     private final TelegramBot bot;
+    private final Random random;
 
-    public ProductHandler(OrderServiceClient orderServiceClient, ProductServiceClient productServiceClient, TelegramBot bot) {
-        this.orderServiceClient = orderServiceClient;
-        this.productServiceClient = productServiceClient;
+    public ProductHandler(RabbitRpcClient rabbitClient, RabbitSender rabbitSender, TelegramBot bot) {
+        this.rabbitClient = rabbitClient;
+        this.rabbitSender = rabbitSender;
         this.bot = bot;
+        this.random = new Random();
     }
+
 
     public void handleProductResponsesCommand(Long chatId) {
         String message = "📦 *Управление товарами*\n\nВыберите действие:";
@@ -52,7 +57,7 @@ public class ProductHandler {
 
     public void showProductResponsesList(Long chatId, int page) {
         try {
-            List<ProductResponse> products = productServiceClient.getAllProductResponses();
+            List<ProductResponse> products = rabbitClient.getAllProducts();
 
             if (products.isEmpty()) {
                 bot.sendTextMessage(chatId, "📭 Товары не найдены");
@@ -84,7 +89,7 @@ public class ProductHandler {
 
     public void showProductResponseDetails(Long chatId, Long productId) {
         try {
-            ProductResponse product = productServiceClient.getProductResponseById(productId);
+            ProductResponse product = rabbitClient.getProductById(productId);
 
             String message = String.format(
                     "📄 *Детали товара:*\n\n" +
@@ -169,16 +174,9 @@ public class ProductHandler {
                     InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup();
                     List<List<InlineKeyboardButton>> rows = new ArrayList<>();
 
-//                    String[] categories = {"Электроника", "Одежда", "Книги", "Продукты", "Другое"};
-//                    for (String category : categories) {
-//                        List<InlineKeyboardButton> row = new ArrayList<>();
-//                        row.add(createButton(category, "product_category_" + category));
-//                        rows.add(row);
-//                    }
 
                     keyboard.setKeyboard(rows);
 
-//                    bot.sendMessageWithKeyboard(chatId, "📁 Выберите или введите категорию:", keyboard);
 
                 } catch (NumberFormatException e) {
                     bot.sendTextMessage(chatId, "❌ Неверный формат количества. Введите число:");
@@ -198,6 +196,7 @@ public class ProductHandler {
 
             CreateProductRequest product = new CreateProductRequest(
 
+             random.nextLong() * System.currentTimeMillis(),
             (String) context.get("name"),
             (String) context.get("description"),
             Double.valueOf((String)context.get("price")),
@@ -205,7 +204,8 @@ public class ProductHandler {
 //            product.setCategory((String) context.get("category"));
             );
 
-            ProductResponse createdProductResponse = productServiceClient.createProduct(product);
+            rabbitSender.sendProduct(product);
+            ProductResponse response = rabbitClient.getProductById(product.tempId());
 
             String message = String.format(
                     "✅ *Товар успешно создан!*\n\n" +
@@ -214,9 +214,9 @@ public class ProductHandler {
                             "💵 Цена: %s ₽\n" +
                             "📦 Остаток: %d шт.\n" +
 //                            "📁 Категория: %s",
-                    createdProductResponse.id(), createdProductResponse.name(), createdProductResponse.price(),
-                    createdProductResponse.quantity()
-//                    , createdProductResponse.getCategory()
+                    response.id(), response.name(), response.price(),
+                    response.quantity()
+//                    , response.getCategory()
             );
 
             bot.sendTextMessage(chatId, message);
@@ -235,36 +235,11 @@ public class ProductHandler {
 
     public void deleteProduct(Long chatId, Long productId) {
         try {
-            productServiceClient.deleteProduct(productId);
+            rabbitSender.deleteProduct(new DeleteProductRequest(productId));
             bot.sendTextMessage(chatId, "✅ Товар успешно удален");
         } catch (Exception e) {
             bot.sendTextMessage(chatId, "❌ Ошибка при удалении товара: " + e.getMessage());
         }
-    }
-
-    public void searchProductResponses(Long chatId, String query) {
-//        try {
-//            List<ProductResponse> products = productServiceClient.searchProduct(query);
-//
-//            if (products.isEmpty()) {
-//                bot.sendTextMessage(chatId, "🔍 Товары по запросу '" + query + "' не найдены");
-//                return;
-//            }
-//
-//            StringBuilder message = new StringBuilder("🔍 *Результаты поиска:* '" + query + "'\n\n");
-//
-//            for (ProductResponse product : products) {
-//                message.append(String.format(
-//                        "🆔 *ID:* %d\n📝 *Название:* %s\n💵 *Цена:* %s ₽\n📦 *Остаток:* %d шт.\n\n",
-//                        product.getId(), product.getName(), product.getPrice(), product.getStockQuantity()
-//                ));
-//            }
-//
-//            bot.sendTextMessage(chatId, message.toString());
-//
-//        } catch (Exception e) {
-//            bot.sendTextMessage(chatId, "❌ Ошибка при поиске товаров: " + e.getMessage());
-//        }
     }
 
     private InlineKeyboardButton createButton(String text, String callbackData) {

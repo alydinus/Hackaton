@@ -10,3 +10,11 @@ logging:
   level:
     org.springframework.web: DEBUG
     
+spring:
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+    template:
+      exchange: crm.exchange

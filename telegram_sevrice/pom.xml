@@ -66,10 +66,8 @@
 			<version>1.0</version>
 		</dependency>
 		<dependency>
-			<groupId>kg.spring.crm</groupId>
-			<artifactId>Crm</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
-			<scope>compile</scope>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-amqp</artifactId>
 		</dependency>
 	</dependencies>
 

@@ -115,10 +115,6 @@ public class TelegramBot extends TelegramLongPollingBot {
                 productHandlers.searchProductResponses(chatId, text);
                 session.setState(TelSessionModel.BotState.IDLE);
                 break;
-            case SEARCHING_ORDERS:
-                orderHandlers.searchOrderResponses(chatId, text);
-                session.setState(TelSessionModel.BotState.IDLE);
-                break;
             default:
                 sendTextMessage(chatId, "Неизвестное состояние. Возврат в главное меню.");
                 session.reset();

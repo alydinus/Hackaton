@@ -1,12 +1,11 @@
 package kg.aiu.telegram_sevrice.components;
 
-import kg.aiu.telegram_sevrice.service.OrderServiceClient;
-import kg.aiu.telegram_sevrice.service.ProductServiceClient;
+import kg.aiu.telegram_sevrice.components.rabbit.RabbitRpcClient;
+import kg.aiu.telegram_sevrice.components.rabbit.RabbitSender;
 import kg.spring.shared.dto.request.CreateOrderRequest;
 import kg.spring.shared.dto.response.OrderResponse;
 import kg.spring.shared.dto.response.ProductResponse;
 import kg.spring.shared.enums.OrderStatus;
-import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -15,19 +14,23 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 @Component
 public class OrderHandler {
 
-    private final OrderServiceClient orderService;
-    private final ProductServiceClient productService;
+    private final RabbitRpcClient rabbitClient;
+    private final RabbitSender rabbitSender;
     private final TelegramBot bot;
+    private final Random random;
 
-    public OrderHandler(OrderServiceClient orderService, ProductServiceClient productService, TelegramBot bot) {
-        this.orderService = orderService;
-        this.productService = productService;
+    public OrderHandler(RabbitRpcClient rabbitClient, RabbitSender rabbitSender, TelegramBot bot) {
+        this.rabbitClient = rabbitClient;
+        this.rabbitSender = rabbitSender;
         this.bot = bot;
+        this.random = new Random();
     }
+
 
     public void handleOrderResponsesCommand(Long chatId) {
         String message = "📋 *Управление заказами*\n\nВыберите действие:";
@@ -57,7 +60,7 @@ public class OrderHandler {
 
     public void showOrderResponsesList(Long chatId, int page) {
         try {
-            List<OrderResponse> orders = orderService.getAllOrderResponses();
+            List<OrderResponse> orders = rabbitClient.getAllOrders();
 
             if (orders.isEmpty()) {
                 bot.sendTextMessage(chatId, "📭 Заказы не найдены");
@@ -91,7 +94,7 @@ public class OrderHandler {
 
     public void showOrderResponseDetails(Long chatId, Long orderId) {
         try {
-            OrderResponse order = orderService.getOrderResponseById(orderId);
+            OrderResponse order = rabbitClient.getOrderById(orderId);
             String statusEmoji = getStatusEmoji(order.status());
 
             String message = String.format(
@@ -161,7 +164,7 @@ public class OrderHandler {
 
     private void showProductResponsesForOrderResponse(Long chatId) {
         try {
-            List<ProductResponse> products = productService.getAllProductResponses();
+            List<ProductResponse> products = rabbitClient.getAllProducts();
 
             if (products.isEmpty()) {
                 bot.sendTextMessage(chatId, "📭 Нет доступных товаров для заказа");
@@ -198,33 +201,6 @@ public class OrderHandler {
         }
     }
 
-//    public void searchOrderResponses(Long chatId, String query) {
-//        try {
-//            List<OrderResponse> orders = orderService.searchOrderResponses(query);
-//
-//            if (orders.isEmpty()) {
-//                bot.sendTextMessage(chatId, "🔍 Заказы по запросу '" + query + "' не найдены");
-//                return;
-//            }
-//
-//            StringBuilder message = new StringBuilder("🔍 *Результаты поиска заказов:* '" + query + "'\n\n");
-//
-//            for (OrderResponse order : orders) {
-//                String statusEmoji = getStatusEmoji(order.status());
-//                message.append(String.format(
-//                        "%s *ID:* %d\n👤 *Клиент:* %s\n📦 *Товар:* %s\n💵 *Сумма:* %s ₽\n\n",
-//                        statusEmoji, order.id(), order.customerId(),
-//                        order.productId()
-//                ));
-//            }
-//
-//            bot.sendTextMessage(chatId, message.toString());
-//
-//        } catch (Exception e) {
-//            bot.sendTextMessage(chatId, "❌ Ошибка при поиске заказов: " + e.getMessage());
-//        }
-//    }
-
     private void completeOrderResponseCreation(Long chatId, TelSessionModel session) {
         try {
 //            String customerName = (String) session.getContext().get("customerName");
@@ -233,12 +209,13 @@ public class OrderHandler {
             Long productId = (Long) session.getContext().get("selectedProductResponseId");
             Integer quantity = (Integer) session.getContext().get("quantity");
 
-            ProductResponse product = productService.getProductResponseById(productId);
+            ProductResponse product = rabbitClient.getProductById(productId);
             List<Long> productIds = new ArrayList<>();
             //add many products later
             productIds.add(productId);
 
             CreateOrderRequest order = new CreateOrderRequest(
+                    random.nextLong() * System.currentTimeMillis(),
                     customerId,
                     productIds,
                     quantity,
@@ -247,7 +224,8 @@ public class OrderHandler {
                     getPrice(productIds)
                     );
 
-            OrderResponse createdOrderResponse = orderService.createOrder(order);
+            rabbitSender.sendOrder(order);
+            OrderResponse createdOrderResponse = rabbitClient.getOrderById(order.tempId());
 
             String message = String.format(
                     "✅ *Заказ успешно создан!*\n\n" +
@@ -331,7 +309,7 @@ public class OrderHandler {
     private Double getPrice(List<Long> responseIds) {
         Double d = 0.0;
         for(Long id : responseIds) {
-            ProductResponse response = productService.getProductResponseById(id);
+            ProductResponse response = rabbitClient.getProductById(id);
             d = d + response.price() * response.quantity();
         }
         return d;

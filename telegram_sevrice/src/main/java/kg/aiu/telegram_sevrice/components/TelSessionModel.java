@@ -15,7 +15,6 @@ public class TelSessionModel {
     public enum BotState {
         IDLE,
 
-        // OrderResponse states
         AWAITING_ORDER_CUSTOMER,
         AWAITING_ORDER_PRODUCT_SELECTION,
         AWAITING_ORDER_QUANTITY,
@@ -23,24 +22,20 @@ public class TelSessionModel {
 //        AWAITING_ORDER_PRODUCT_NAME,
 //        AWAITING_ORDER_AMOUNT,
 
-        // ProductResponse states
         AWAITING_PRODUCT_NAME,
         AWAITING_PRODUCT_DESCRIPTION,
         AWAITING_PRODUCT_PRICE,
         AWAITING_PRODUCT_STOCK,
         AWAITING_PRODUCT_CATEGORY,
 
-        // Edit states
         EDITING_ORDER,
         EDITING_PRODUCT_NAME,
         EDITING_PRODUCT_PRICE,
         EDITING_PRODUCT_STOCK,
 
-        // Search states
         SEARCHING_ORDERS,
         SEARCHING_PRODUCTS,
 
-        // Other states
         AWAITING_CONFIRMATION
     }
 
