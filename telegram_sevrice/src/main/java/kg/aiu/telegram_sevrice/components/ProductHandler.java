@@ -5,6 +5,8 @@ import kg.aiu.telegram_sevrice.components.rabbit.RabbitSender;
 import kg.spring.shared.dto.request.CreateProductRequest;
 import kg.spring.shared.dto.request.DeleteProductRequest;
 import kg.spring.shared.dto.response.ProductResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -18,9 +20,10 @@ import java.util.Random;
 @Component
 public class ProductHandler {
 
+    private static final Logger log = LoggerFactory.getLogger(ProductHandler.class);
     private final RabbitRpcClient rabbitClient;
     private final RabbitSender rabbitSender;
-    private final @Lazy TelegramBot bot;
+    private final TelegramBot bot;
     private final Random random;
 
     public ProductHandler(RabbitRpcClient rabbitClient, RabbitSender rabbitSender,@Lazy TelegramBot bot) {
@@ -32,6 +35,7 @@ public class ProductHandler {
 
 
     public void handleProductResponsesCommand(Long chatId) {
+        log.info("HandleProductResponsesCommand");
         String message = "📦 *Управление товарами*\n\nВыберите действие:";
 
         InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup();
@@ -157,36 +161,17 @@ public class ProductHandler {
 
             case AWAITING_PRODUCT_PRICE:
                 try {
-                    Double price = Double.valueOf(text);
-                    context.put("price", price);
-                    session.setState(TelSessionModel.BotState.AWAITING_PRODUCT_STOCK);
                     bot.sendTextMessage(chatId, "📦 Введите количество:");
+                    Double price = Double.parseDouble(text);
+                    context.put("price", price);
                 } catch (NumberFormatException e) {
                     bot.sendTextMessage(chatId, "❌ Неверный формат цены. Введите число:");
                 }
-                break;
-
-            case AWAITING_PRODUCT_STOCK:
-                try {
-                    Integer stock = Integer.parseInt(text);
-                    context.put("stock", stock);
-                    session.setState(TelSessionModel.BotState.AWAITING_PRODUCT_CATEGORY);
-
-                    InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup();
-                    List<List<InlineKeyboardButton>> rows = new ArrayList<>();
-
-
-                    keyboard.setKeyboard(rows);
-
-
-                } catch (NumberFormatException e) {
-                    bot.sendTextMessage(chatId, "❌ Неверный формат количества. Введите число:");
-                }
-                break;
-
-            case AWAITING_PRODUCT_CATEGORY:
-                context.put("category", text);
+                session.setContext(context);
+                //add confirmation here
                 completeProductResponseCreation(chatId, session);
+                break;
+            default:
                 break;
         }
     }
@@ -194,14 +179,13 @@ public class ProductHandler {
     public void completeProductResponseCreation(Long chatId, TelSessionModel session) {
         try {
             Map<String, Object> context = session.getContext();
-
             CreateProductRequest product = new CreateProductRequest(
 
              random.nextLong() * System.currentTimeMillis(),
             (String) context.get("name"),
             (String) context.get("description"),
-            Double.valueOf((String)context.get("price")),
-            Integer.valueOf((String)context.get("stock"))
+            Double.parseDouble(context.get("price").toString()),
+            Integer.parseInt(context.get("quantity").toString())
 //            product.setCategory((String) context.get("category"));
             );
 
